@@ -1,0 +1,10 @@
+[
+  {"question": "What do plants need to make their own food?", "options": ["Sunlight", "Salt", "Sugar", "Sand"], "answer": "Sunlight"},
+  {"question": "Which gas do we breathe in to live?", "options": ["Carbon Dioxide", "Oxygen", "Nitrogen", "Helium"], "answer": "Oxygen"},
+  {"question": "What is the closest star to Earth?", "options": ["Moon", "Sun", "Mars", "Venus"], "answer": "Sun"},
+  {"question": "How many legs does an insect have?", "options": ["4", "6", "8", "10"], "answer": "6"},
+  {"question": "What do we call water in its solid form?", "options": ["Steam", "Vapor", "Ice", "Liquid"], "answer": "Ice"},
+  {"question": "Which part of the body pumps blood?", "options": ["Lungs", "Brain", "Heart", "Liver"], "answer": "Heart"},
+  {"question": "What force pulls objects toward the Earth?", "options": ["Magnetism", "Friction", "Gravity", "Motion"], "answer": "Gravity"},
+  {"question": "Which organ do we use to see?", "options": ["Ears", "Eyes", "Nose", "Skin"], "answer": "Eyes"}
+]

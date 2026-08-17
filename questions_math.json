@@ -1,0 +1,102 @@
+[
+  {
+    "question": "What is 7 + 5?",
+    "options": [
+      "10",
+      "11",
+      "12",
+      "13"
+    ],
+    "answer": "12"
+  },
+  {
+    "question": "What is 9 - 4?",
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "answer": "5"
+  },
+  {
+    "question": "What is 6 x 3?",
+    "options": [
+      "16",
+      "18",
+      "20",
+      "24"
+    ],
+    "answer": "18"
+  },
+  {
+    "question": "What is 20 / 4?",
+    "options": [
+      "4",
+      "5",
+      "6",
+      "8"
+    ],
+    "answer": "5"
+  },
+  {
+    "question": "What is 15 + 8?",
+    "options": [
+      "21",
+      "22",
+      "23",
+      "24"
+    ],
+    "answer": "23"
+  },
+  {
+    "question": "What is 12 x 2?",
+    "options": [
+      "22",
+      "24",
+      "26",
+      "28"
+    ],
+    "answer": "24"
+  },
+  {
+    "question": "What is 100 - 45?",
+    "options": [
+      "45",
+      "55",
+      "65",
+      "50"
+    ],
+    "answer": "55"
+  },
+  {
+    "question": "What is 8 x 8?",
+    "options": [
+      "56",
+      "60",
+      "64",
+      "72"
+    ],
+    "answer": "64"
+  },
+  {
+    "question": "5*8",
+    "options": [
+      "1",
+      "40",
+      "45",
+      "49"
+    ],
+    "answer": "40"
+  },
+  {
+    "question": "2+2",
+    "options": [
+      "2",
+      "3",
+      "5",
+      "4"
+    ],
+    "answer": "4"
+  }
+]
