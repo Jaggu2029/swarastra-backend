@@ -1,12 +1,9 @@
-streamlit
-opencv-python
+opencv-python-headless
 mediapipe
 scikit-learn
 numpy
-pandas
 joblib
 Pillow
-google-genai
 flask
 flask-cors
 gunicorn
