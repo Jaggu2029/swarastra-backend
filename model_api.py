@@ -43,8 +43,7 @@ _base_options = mp_tasks.BaseOptions(model_asset_path=MODEL_TASK_PATH)
 _options = mp_vision.HandLandmarkerOptions(
     base_options=_base_options,
     num_hands=1,
-    min_hand_detection_confidence=0.15,
-    min_hand_presence_confidence=0.15,
+    min_hand_detection_confidence=0.3,
     running_mode=mp_vision.RunningMode.IMAGE,
 )
 detector = mp_vision.HandLandmarker.create_from_options(_options)
