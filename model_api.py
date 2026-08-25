@@ -103,13 +103,15 @@ def predict_sign(pil_image):
         if hasattr(model, "predict_proba"):
             mirr_conf = float(model.predict_proba(feats)[0][pred_idx])
 
-    # Prefer natural orientation if hand is detected with good confidence
-    if orig_label and orig_conf >= 0.35:
-        return orig_label, orig_conf
-    if mirr_label and mirr_conf >= 0.35:
-        return mirr_label, mirr_conf
-    if orig_label or mirr_label:
-        return (orig_label, orig_conf) if orig_conf >= mirr_conf else (mirr_label, mirr_conf)
+    # Pick the orientation (natural vs. mirrored) with the highest confidence score
+    best_label, best_conf = None, 0.0
+    if orig_label and orig_conf > best_conf:
+        best_label, best_conf = orig_label, orig_conf
+    if mirr_label and mirr_conf > best_conf:
+        best_label, best_conf = mirr_label, mirr_conf
+
+    if best_label and best_conf >= 0.30:
+        return best_label, best_conf
 
     return None, None
 
