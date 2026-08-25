@@ -73,47 +73,38 @@ def normalize_landmarks(landmarks):
 
 
 def predict_sign(pil_image):
-    """Tries natural orientation first, falling back to mirror if needed."""
+    """
+    Tries both orientations (original and mirrored) automatically and uses
+    whichever the model is more confident about.
+    """
     image_rgb = np.array(pil_image.convert("RGB"))
 
-    # 1. Natural (Unmirrored) Orientation
-    mp_image_orig = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
-    result_orig = detector.detect(mp_image_orig)
-    
-    orig_label, orig_conf = None, 0.0
-    if result_orig.hand_landmarks:
-        coords = [(lm.x, lm.y, lm.z) for lm in result_orig.hand_landmarks[0]]
+    candidates = []
+    for mirror in (False, True):
+        img = np.ascontiguousarray(image_rgb[:, ::-1, :]) if mirror else image_rgb
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img)
+        result = detector.detect(mp_image)
+        if not result.hand_landmarks:
+            continue
+
+        hand = result.hand_landmarks[0]
+        coords = [(lm.x, lm.y, lm.z) for lm in hand]
         feats = normalize_landmarks(coords).reshape(1, -1)
+
         pred_idx = model.predict(feats)[0]
-        orig_label = label_encoder.inverse_transform([pred_idx])[0]
+        label = label_encoder.inverse_transform([pred_idx])[0]
+        confidence = None
         if hasattr(model, "predict_proba"):
-            orig_conf = float(model.predict_proba(feats)[0][pred_idx])
+            confidence = float(model.predict_proba(feats)[0][pred_idx])
 
-    # 2. Mirrored Orientation
-    mirrored_rgb = np.ascontiguousarray(image_rgb[:, ::-1, :])
-    mp_image_mirr = mp.Image(image_format=mp.ImageFormat.SRGB, data=mirrored_rgb)
-    result_mirr = detector.detect(mp_image_mirr)
-    
-    mirr_label, mirr_conf = None, 0.0
-    if result_mirr.hand_landmarks:
-        coords = [(lm.x, lm.y, lm.z) for lm in result_mirr.hand_landmarks[0]]
-        feats = normalize_landmarks(coords).reshape(1, -1)
-        pred_idx = model.predict(feats)[0]
-        mirr_label = label_encoder.inverse_transform([pred_idx])[0]
-        if hasattr(model, "predict_proba"):
-            mirr_conf = float(model.predict_proba(feats)[0][pred_idx])
+        candidates.append((confidence if confidence is not None else 0.0, label, confidence))
 
-    # Pick the orientation with the highest confidence score
-    best_label, best_conf = None, 0.0
-    if orig_label is not None and orig_conf > best_conf:
-        best_label, best_conf = orig_label, orig_conf
-    if mirr_label is not None and mirr_conf > best_conf:
-        best_label, best_conf = mirr_label, mirr_conf
+    if not candidates:
+        return None, None
 
-    if best_label is not None:
-        return best_label, best_conf
-
-    return None, None
+    candidates.sort(key=lambda c: c[0], reverse=True)
+    _, label, confidence = candidates[0]
+    return label, confidence
 
 
 @app.route("/health", methods=["GET"])
