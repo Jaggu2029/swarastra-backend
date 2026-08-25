@@ -22,7 +22,15 @@ Example response:
 """
 
 import io
+import os
+import warnings
 
+# Suppress verbose C++/MediaPipe log output and Python warnings
+os.environ["GLOG_minloglevel"] = "2"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+warnings.filterwarnings("ignore")
+
+import joblib
 import mediapipe as mp
 import numpy as np
 from flask import Flask, jsonify, request
@@ -30,7 +38,6 @@ from flask_cors import CORS
 from mediapipe.tasks import python as mp_tasks
 from mediapipe.tasks.python import vision as mp_vision
 from PIL import Image
-import joblib
 
 MODEL_TASK_PATH = "hand_landmarker.task"
 CLASSIFIER_PATH = "gsl_classifier.joblib"
@@ -39,18 +46,18 @@ app = Flask(__name__)
 CORS(app)  # allows browsers on other origins (e.g. your friend's React dev server) to call this API
 
 print("Loading models...")
-_base_options = mp_tasks.BaseOptions(model_asset_path=MODEL_TASK_PATH)
-_options = mp_vision.HandLandmarkerOptions(
-    base_options=_base_options,
+base_options = mp_tasks.BaseOptions(model_asset_path=MODEL_TASK_PATH)
+options = mp_vision.HandLandmarkerOptions(
+    base_options=base_options,
     num_hands=1,
     min_hand_detection_confidence=0.3,
     running_mode=mp_vision.RunningMode.IMAGE,
 )
-detector = mp_vision.HandLandmarker.create_from_options(_options)
+detector = mp_vision.HandLandmarker.create_from_options(options)
 
-_bundle = joblib.load(CLASSIFIER_PATH)
-model = _bundle["model"]
-label_encoder = _bundle["label_encoder"]
+bundle = joblib.load(CLASSIFIER_PATH)
+model = bundle["model"]
+label_encoder = bundle["label_encoder"]
 print(f"Ready. Classes: {list(label_encoder.classes_)}")
 
 
