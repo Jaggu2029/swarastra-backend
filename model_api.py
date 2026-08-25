@@ -105,12 +105,12 @@ def predict_sign(pil_image):
 
     # Pick the orientation (natural vs. mirrored) with the highest confidence score
     best_label, best_conf = None, 0.0
-    if orig_label and orig_conf > best_conf:
+    if orig_label is not None and orig_conf > best_conf:
         best_label, best_conf = orig_label, orig_conf
-    if mirr_label and mirr_conf > best_conf:
+    if mirr_label is not None and mirr_conf > best_conf:
         best_label, best_conf = mirr_label, mirr_conf
 
-    if best_label and best_conf >= 0.30:
+    if best_label is not None and best_conf >= 0.30:
         return best_label, best_conf
 
     return None, None
