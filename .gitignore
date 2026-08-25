@@ -1,6 +1,4 @@
 __pycache__/ 
 dataset/ 
-*.joblib 
-*.task 
 .env
 .env.*

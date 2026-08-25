@@ -46,6 +46,17 @@ app = Flask(__name__)
 CORS(app)  # allows browsers on other origins (e.g. your friend's React dev server) to call this API
 
 print("Loading models...")
+if not os.path.exists(MODEL_TASK_PATH):
+    print(f"Downloading {MODEL_TASK_PATH}...")
+    import urllib.request
+    urllib.request.urlretrieve(
+        "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task",
+        MODEL_TASK_PATH,
+    )
+
+if not os.path.exists(CLASSIFIER_PATH):
+    raise FileNotFoundError(f"{CLASSIFIER_PATH} not found in current directory.")
+
 base_options = mp_tasks.BaseOptions(model_asset_path=MODEL_TASK_PATH)
 options = mp_vision.HandLandmarkerOptions(
     base_options=base_options,
