@@ -22,15 +22,7 @@ Example response:
 """
 
 import io
-import os
-import warnings
 
-# Suppress verbose C++/MediaPipe log output and Python warnings
-os.environ["GLOG_minloglevel"] = "2"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-warnings.filterwarnings("ignore")
-
-import joblib
 import mediapipe as mp
 import numpy as np
 from flask import Flask, jsonify, request
@@ -38,6 +30,7 @@ from flask_cors import CORS
 from mediapipe.tasks import python as mp_tasks
 from mediapipe.tasks.python import vision as mp_vision
 from PIL import Image
+import joblib
 
 MODEL_TASK_PATH = "hand_landmarker.task"
 CLASSIFIER_PATH = "gsl_classifier.joblib"
@@ -46,29 +39,18 @@ app = Flask(__name__)
 CORS(app)  # allows browsers on other origins (e.g. your friend's React dev server) to call this API
 
 print("Loading models...")
-if not os.path.exists(MODEL_TASK_PATH):
-    print(f"Downloading {MODEL_TASK_PATH}...")
-    import urllib.request
-    urllib.request.urlretrieve(
-        "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task",
-        MODEL_TASK_PATH,
-    )
-
-if not os.path.exists(CLASSIFIER_PATH):
-    raise FileNotFoundError(f"{CLASSIFIER_PATH} not found in current directory.")
-
-base_options = mp_tasks.BaseOptions(model_asset_path=MODEL_TASK_PATH)
-options = mp_vision.HandLandmarkerOptions(
-    base_options=base_options,
+_base_options = mp_tasks.BaseOptions(model_asset_path=MODEL_TASK_PATH)
+_options = mp_vision.HandLandmarkerOptions(
+    base_options=_base_options,
     num_hands=1,
     min_hand_detection_confidence=0.3,
     running_mode=mp_vision.RunningMode.IMAGE,
 )
-detector = mp_vision.HandLandmarker.create_from_options(options)
+detector = mp_vision.HandLandmarker.create_from_options(_options)
 
-bundle = joblib.load(CLASSIFIER_PATH)
-model = bundle["model"]
-label_encoder = bundle["label_encoder"]
+_bundle = joblib.load(CLASSIFIER_PATH)
+model = _bundle["model"]
+label_encoder = _bundle["label_encoder"]
 print(f"Ready. Classes: {list(label_encoder.classes_)}")
 
 
@@ -121,14 +103,14 @@ def predict_sign(pil_image):
         if hasattr(model, "predict_proba"):
             mirr_conf = float(model.predict_proba(feats)[0][pred_idx])
 
-    # Pick the orientation (natural vs. mirrored) with the highest confidence score
+    # Pick the orientation with the highest confidence score
     best_label, best_conf = None, 0.0
     if orig_label is not None and orig_conf > best_conf:
         best_label, best_conf = orig_label, orig_conf
     if mirr_label is not None and mirr_conf > best_conf:
         best_label, best_conf = mirr_label, mirr_conf
 
-    if best_label is not None and best_conf >= 0.30:
+    if best_label is not None:
         return best_label, best_conf
 
     return None, None
