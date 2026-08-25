@@ -73,35 +73,45 @@ def normalize_landmarks(landmarks):
 
 
 def predict_sign(pil_image):
-    """Tries both orientations automatically, same as the Streamlit app."""
+    """Tries natural orientation first, falling back to mirror if needed."""
     image_rgb = np.array(pil_image.convert("RGB"))
 
-    candidates = []
-    for mirror in (False, True):
-        img = np.ascontiguousarray(image_rgb[:, ::-1, :]) if mirror else image_rgb
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img)
-        result = detector.detect(mp_image)
-        if not result.hand_landmarks:
-            continue
-
-        hand = result.hand_landmarks[0]
-        coords = [(lm.x, lm.y, lm.z) for lm in hand]
+    # 1. Natural (Unmirrored) Orientation
+    mp_image_orig = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
+    result_orig = detector.detect(mp_image_orig)
+    
+    orig_label, orig_conf = None, 0.0
+    if result_orig.hand_landmarks:
+        coords = [(lm.x, lm.y, lm.z) for lm in result_orig.hand_landmarks[0]]
         feats = normalize_landmarks(coords).reshape(1, -1)
-
         pred_idx = model.predict(feats)[0]
-        label = label_encoder.inverse_transform([pred_idx])[0]
-        confidence = None
+        orig_label = label_encoder.inverse_transform([pred_idx])[0]
         if hasattr(model, "predict_proba"):
-            confidence = float(model.predict_proba(feats)[0][pred_idx])
+            orig_conf = float(model.predict_proba(feats)[0][pred_idx])
 
-        candidates.append((confidence if confidence is not None else 0.0, label, confidence))
+    # 2. Mirrored Orientation
+    mirrored_rgb = np.ascontiguousarray(image_rgb[:, ::-1, :])
+    mp_image_mirr = mp.Image(image_format=mp.ImageFormat.SRGB, data=mirrored_rgb)
+    result_mirr = detector.detect(mp_image_mirr)
+    
+    mirr_label, mirr_conf = None, 0.0
+    if result_mirr.hand_landmarks:
+        coords = [(lm.x, lm.y, lm.z) for lm in result_mirr.hand_landmarks[0]]
+        feats = normalize_landmarks(coords).reshape(1, -1)
+        pred_idx = model.predict(feats)[0]
+        mirr_label = label_encoder.inverse_transform([pred_idx])[0]
+        if hasattr(model, "predict_proba"):
+            mirr_conf = float(model.predict_proba(feats)[0][pred_idx])
 
-    if not candidates:
-        return None, None
+    # Prefer natural orientation if hand is detected with good confidence
+    if orig_label and orig_conf >= 0.35:
+        return orig_label, orig_conf
+    if mirr_label and mirr_conf >= 0.35:
+        return mirr_label, mirr_conf
+    if orig_label or mirr_label:
+        return (orig_label, orig_conf) if orig_conf >= mirr_conf else (mirr_label, mirr_conf)
 
-    candidates.sort(key=lambda c: c[0], reverse=True)
-    _, label, confidence = candidates[0]
-    return label, confidence
+    return None, None
 
 
 @app.route("/health", methods=["GET"])
